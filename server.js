@@ -30,12 +30,12 @@ app.get('/api/tasks/:id', (req, res) => {
 });
 /* update an existing task */
 app.put('/api/tasks/:id', [
-  check('description').isAlpha(),
-  check('date').isDate({format: 'YYYY-MM-DD', strictMode: true}),
+  /*check('description').isAlpha(),*/
+  /*check('date').isDate({format: 'YYYY-MM-DD', strictMode: true}),
   check('date').isAfter(dayjs()),
   check('important').isBoolean(),
   check('private').isBoolean(),
-  check('completed').isBoolean()
+  check('completed').isBoolean()*/
 ], async (req, res) => {
   const errors = validationResult(req);
   if(!errors.isEmpty()) /*se ci sono errori*/
@@ -46,11 +46,11 @@ app.put('/api/tasks/:id', [
   /*if(req.params.id === taskToUpdate.id) {*/
     try {
       /*qua non ho problemi*/
-      await dao.updateTask(taskToUpdate);
+      await dao.updateTask(taskToUpdate, req.params.id);
       res.status(200).end();
     } catch(err) {
       /*mando json indietro con stringa di errore*/
-      res.status(503).json({error: `Database error during the update of task ${taskToUpdate.id}`});
+      res.status(503).json({error: `Database error during the update of task ${req.params.id}`});
     }
  /* }
   else return res.status(503).json({error: `Wrong id in the request body.`});*/

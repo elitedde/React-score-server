@@ -32,15 +32,15 @@ exports.getTask = (id) => {
   });
 };
 /* update an existing task */
-exports.updateExam = (task) => {
+exports.updateExam = (task, id) => {
     return new Promise((resolve, reject) => {
-      const sql = 'UPDATE tasks SET description=? important=? private=? date=DATE(?) completed=? WHERE id = ?';
-      db.run(sql, [task.description,task.important,task.private, task.deadline, task.completed], function (err) {
+      const sql = 'UPDATE tasks SET description=?, important=?, private=?, deadline=DATE(?), completed=?, user=? WHERE id = ?';
+      db.run(sql, [task.description,task.important,task.private, task.deadline, task.completed, task.user, id], function (err) {
         if (err) {
           reject(err);
           return;
         }
-        resolve(this.lastID);
+        resolve();
       });
     });
   };
