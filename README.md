@@ -43,7 +43,7 @@ URL: `/api/tasks/<filter>`
 
 HTTP Method: GET
 
-Description: Get all tasks that fulfill a given filter.
+Description: Get all tasks that fulfill a given filter `filter`.
 
 Request body: _None_
 ## stato HTTP
@@ -101,7 +101,7 @@ HTTP Method: POST
 
 Description: Add a new task.
 
-Request body: An object that represents an exam (Content-Type: `application/json`).
+Request body: An object that represents an task (Content-Type: `application/json`).
 ```
 {
     "description": "laundry",
@@ -123,7 +123,7 @@ HTTP Method: PUT
 
 Description: Update an existing task given its id by providing all relevant information – except the “id” that will be automatically assigned by the back-end;
 
-Request body: An object that represents an exam (Content-Type: `application/json`).
+Request body: An object that represents an task (Content-Type: `application/json`).
 ```
 {
     "description": "laundry",
@@ -143,7 +143,7 @@ URL: `/api/tasks/<id>`
 
 HTTP Method: DELETE
 
-Description: Delete an existing task, given its id.
+Description: Delete an existing task, given its id `id`
 
 Request body: _None_
 

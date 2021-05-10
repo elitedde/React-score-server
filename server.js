@@ -1,6 +1,7 @@
 'use strict';
 //usare npx nodemon 
 const express = require('express');
+const dayjs= require('dayjs');
 const morgan = require('morgan'); // logging middleware
 const {check, validationResult} = require('express-validator'); // validation middleware
 const dao = require('./dao'); // module for accessing the DB
@@ -15,46 +16,91 @@ app.use(express.json()); // for parsing json request body
 
 /*** API ***/
 
-// GET /api/exams ritorna una promise
-/*se va tutto bene .then() prendo arrayoggetti */
-/*se c'è errore .catch() error 500 .end() serve per inviare risposta*/
-/*lanciando vedo elenco esami*/
-app.get('/api/exams', (req, res) => {
-  dao.listExams()
-  .then(exams => res.json(exams))
+//retrieve the list of all the available tasks
+app.get('/api/tasks', (req, res) => {
+  dao.getAll()
+  .then(tasks => res.json(tasks))
   .catch(()=> res.status(500).end());
 });
-
-// PUT /api/exams/<code>
-/*bisogna cercare reqbin e inserire localhost3001 min7, in content devo avere .json e inserisco oggetto json che */
-/*voglio aggiornare* e con send vedo 200ok/
-/*i check mi servono per fare validazione strictMode: true accetto data solo in questo formato*/
-app.put('/api/exams/:code', [
-  check('code').isLength({min:7, max:7}),
-  check('score').isInt({min: 18, max: 31}),
-  check('date').isDate({format: 'YYYY-MM-DD', strictMode: true})
-  /*potrei aggiungere date.isafter() come ulteriore check */
+//retrieve a task given id
+app.get('/api/tasks/:id', (req, res) => {
+  dao.getTask(req.params.id)
+  .then(task => res.json(task))
+  .catch(()=> res.status(500).end());
+});
+/* update an existing task */
+app.put('/api/tasks/:id', [
+  check('description').isAlpha(),
+  check('date').isDate({format: 'YYYY-MM-DD', strictMode: true}),
+  check('date').isAfter(dayjs()),
+  check('important').isBoolean(),
+  check('private').isBoolean(),
+  check('completed').isBoolean()
 ], async (req, res) => {
   const errors = validationResult(req);
   if(!errors.isEmpty()) /*se ci sono errori*/
     return res.status(422).json({errors: errors.array()});
     
 /*qua ho oggetto da aggiornare*/
-  const examToUpdate = req.body;
-  if(req.params.code === examToUpdate.code) {
+  const taskToUpdate = req.body;
+  /*if(req.params.id === taskToUpdate.id) {*/
     try {
       /*qua non ho problemi*/
-      await dao.updateExam(examToUpdate);
+      await dao.updateTask(taskToUpdate);
       res.status(200).end();
     } catch(err) {
       /*mando json indietro con stringa di errore*/
-      res.status(503).json({error: `Database error during the update of exam ${examToUpdate.code}`});
+      res.status(503).json({error: `Database error during the update of task ${taskToUpdate.id}`});
     }
-  }
-  else return res.status(503).json({error: `Wrong code in the request body.`});
+ /* }
+  else return res.status(503).json({error: `Wrong id in the request body.`});*/
   
 });
 
+/* add a new task*/
+app.post('/api/tasks/', [
+    check('description').isAlpha(),
+    check('date').isDate({format: 'YYYY-MM-DD', strictMode: true}),
+    check('date').isAfter(dayjs()),
+    /*check('important').isBoolean(),
+    check('private').isBoolean(),
+    check('completed').isBoolean()*/
+  ], async (req, res) => {
+    const errors = validationResult(req);
+    if(!errors.isEmpty()) /*se ci sono errori*/
+      return res.status(422).json({errors: errors.array()});
+      
+    //fare controllo che task non ci sia già
+    const taskToAdd = req.body;
+      try {
+        /*qua non ho problemi*/
+        await dao.addTask(taskToAdd);
+        res.status(201).end();
+      } catch(err) {
+        /*mando json indietro con stringa di errore*/
+        res.status(503).json({error: `Database error during the adding of the task ${taskToAdd.id}`});
+      }
+    
+});
+//?important=parametro con true false
+ // delete an existing exam
+ app.delete('/api/tasks/:id', async (req, res) => {
+    const errors = validationResult(req);
+    if(!errors.isEmpty()) /*se ci sono errori*/
+      return res.status(503);
+      
+    const taskToDelete = req.params.id;
+    /*if(req.params.id === taskToDelete) {*/
+      try {
+        await dao.deleteTask(taskToDelete);
+        res.status(204).end();
+      } catch(err) {
+        res.status(503).json({error: `Database error during the update of task ${taskToDelete}`});
+      }
+    /*}
+    else return res.status(503).json({error: `Wrong id in the request body.`});*/
+    
+  });
 // Activate the server
 app.listen(port, ()=> {
   console.log(`Server started at http://localhost:${port}`);
