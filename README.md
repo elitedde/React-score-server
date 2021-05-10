@@ -4,120 +4,132 @@ The `react-score-server` is the server-side app companion of [`react-scores`](ht
 
 ## APIs
 Hereafter, we report the designed HTTP APIs, also implemented in the project.
-## vorrei collezioni corsi e esami
-### __List all courses__
-## tutte API iniziano con /api 
-URL: `/api/courses`
+
+### __Retrieve the list of all the  available tasks__
+
+URL: `/api/tasks`
 
 HTTP Method: GET
 
-Description: Get all courses that the student needs to pass.
+Description: Get all tasks.
 
 Request body: _None_
 ## stato HTTP
 Response: `200 OK` (success) or `500 Internal Server Error` (generic error)
 
-## corpo risposta : è un array di oggetti
+corpo risposta : è un array di oggetti
+
 Response body:
 ```
 [
   {
-    "code": "01TYMOV",
-    "name": "Web Applications I",
-    "CFU": 6
+    "description": "laundry",
+    "important": 0,
+    "private": 1,
+    "deadline": NULL;
   },
   {
-    "code": "01TABC",
-    "name": "Information system security",
-    "CFU": 10
+    "description": "monday lab",
+    "important": 0,
+    "private": 0,
+    "deadline": 2021-03-16T09:00:00.000Z;
   },
   ...
 ]
 ```
-## dato codice corso, trovo corso dato il suo codice
-### __Get a course (by code)__
+### __Retrieve a list of all the tasks that fulfill a given filter__
 
-URL: `/api/courses/<code>`
+URL: `/api/tasks/<filter>`
 
 HTTP Method: GET
 
-Description: Get the course identified by the code `code`.
+Description: Get all tasks that fulfill a given filter.
+
+Request body: _None_
+## stato HTTP
+Response: `200 OK` (success) or `500 Internal Server Error` (generic error) or , `404 Not Found` (filter doesn't exist)
+
+corpo risposta : è un array di oggetti
+
+Response body:
+```
+[
+  {
+    "description": "laundry",
+    "important": 0,
+    "private": 1,
+    "deadline": NULL;
+  },
+  {
+    "description": "monday lab",
+    "important": 1,
+    "private": 1,
+    "deadline": 2021-03-16T09:00:00.000Z;
+  },
+  ...
+]
+```
+
+### __Retrieve a task, given its “id”__
+
+URL: `/api/tasks/<id>`
+
+HTTP Method: GET
+
+Description: Get the task identified by the id `id`.
 
 Request body: _None_
 
-Response: `200 OK` (success), `500 Internal Server Error` (generic error), `404 Not Found` (wrong code, se non esiste quel codice)
-## risposta è un solo oggetto
+Response: `200 OK` (success), `500 Internal Server Error` (generic error), `404 Not Found` (wrong id)
+
+risposta è un solo oggetto
+
 Response body:
 ```
 {
-  "code": "01TYMOV",
-  "name": "Web Applications I",
-  "CFU": 6
+    "description": "laundry",
+    "important": 0,
+    "private": 1,
+    "deadline": NULL;
 }
 ```
-### __List all exams
+### __Add a new task__
 
-URL: `/api/exams`
-
-HTTP Method: GET
-
-Description: Get all exams that the student already passed.
-
-Request body: _None_
-
-Response: `200 OK` (success) or `500 Internal Server Error` (generic error)
-
-Response body:
-```
-[
-  {
-    "code": "01TYMOV",
-    "score": 31,
-    "date": "2021-02-01"
-  },
-  {
-    "code": "01TABC",
-    "score": 25,
-    "date": "2021-03-05"
-  },
-  ...
-]
-```
-### __Add a new exam__
-
-URL: `/api/exams`
+URL: `/api/tasks`
 
 HTTP Method: POST
 
-Description: Add a new passed exam.
+Description: Add a new task.
 
 Request body: An object that represents an exam (Content-Type: `application/json`).
 ```
 {
-  "code": "01TYMOV",
-  "score": 26,
-  "date": "2021-02-23"
+    "description": "laundry",
+    "important": 0,
+    "private": 1,
+    "deadline": NULL;
 }
 ```
 
-Response: `201` (success - oggetto creato con successo), `503` (generic error, e.g., if adding an already existent exam). If the request body is not valid, `422 Unprocessable Entity`.
+Response: `201` (success - oggetto creato con successo), `503` (generic error, e.g., if adding an already existent task). If the request body is not valid, `422 Unprocessable Entity`.
 
 Response body: _None_
 
-### __Update an existing exam__
+### __Update an existing task__
 
-URL: `/api/exams/<code>`
+URL: `/api/tasks/<id>`
 
 HTTP Method: PUT
 
-Description: Update (entirely) an existing exam ovvero passo tutto oggetto esame, given its code.
+Description: Update an existing task given its id by providing all relevant information – except the “id” that will be automatically assigned by the back-end;
 
 Request body: An object that represents an exam (Content-Type: `application/json`).
 ```
 {
-  "code": "01TYMOV",
-  "score": 27,
-  "date": "2021-02-23"
+    "description": "laundry",
+    "important": 1,
+    "private": 1,
+    "deadline": NULL;
 }
 ```
 
@@ -125,16 +137,39 @@ Response: `200` (success), `503` (generic error). If the request body is not val
 
 Response body: _None_
 
-### __Delete an existing exam__
+### __Delete an existing task__
 
-URL: `/api/exams/<code>`
+URL: `/api/tasks/<id>`
 
 HTTP Method: DELETE
 
-Description: Delete an existing exam, given its code.
+Description: Delete an existing task, given its id.
 
 Request body: _None_
 
 Response: `204` (success, è un ok ma non ha contenuto da passare), `503` (error).
+
+Response body: _None_
+
+### __Mark an existing task as completed/uncompleted__
+
+URL: `/api/tasks/<id>`
+
+HTTP Method: PUT
+
+Description: mark an existing task as completed/uncompleted given its id
+
+Request body: An object that represents an exam (Content-Type: `application/json`).
+### ___da fare___
+```
+{
+    "description": "laundry",
+    "important": 1,
+    "private": 1,
+    "deadline": NULL;
+}
+```
+
+Response: `200` (success), `503` (generic error). If the request body is not valid, `422 Unprocessable Entity`.
 
 Response body: _None_
