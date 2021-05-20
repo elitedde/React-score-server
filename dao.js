@@ -44,21 +44,44 @@ exports.updateExam = (task, id) => {
       });
     });
   };
+  const getMaxId = () => {
+    return new Promise((resolve, reject) => {
+        const sql = 'SELECT MAX(id) FROM tasks';
+        db.get(sql, [], (err, row) => {
+        if (err) {
+            reject(err);
+            return;
+        }
+        else{
+            if(row===undefined)
+                resolve(0);
+            else
+                resolve(row);
+        }    
+        });
+    })
+}
 // add a new task
 exports.createTask = (task) => {
-    return new Promise((resolve, reject) => {
-      const s = 'SELECT MAX(id) FROM tasks';
-      newid= db.get(s,id) + 1;
-      const sql = 'INSERT INTO tasks(id, description, important, private, deadline, completed, user) VALUES(?,?,?,?, DATE(?),?,?)';
-      db.run(sql, [id, task.description,task.important,task.private, task.deadline, task.completed, task.user], function (err) {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(this.lastID);
-      });
+  return new Promise((resolve, reject) => {
+    
+    const sql = 'INSERT INTO tasks(id,description,important,private,deadline,completed,user) VALUES(?, ?, ?, ?, ?, ?, ?)';
+    let rows;
+    getMaxId().then((x) => rows = x).catch((err) => reject(err));    
+    
+    let numRows = rows+1;
+    
+    db.run(sql, [numRows, task.description, task.important, task.private, task.deadline, task.completed, task.user], function (err) {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(this.lastID);
     });
-  };
+  });
+};
+
+
 // delete an existing exam
 exports.deleteTask = (id) => {
     return new Promise((resolve, reject) => {
@@ -71,7 +94,7 @@ exports.deleteTask = (id) => {
           resolve(null);
       });
     });
-  }
+  };
 /*this.getAfterDeadline = (deadline) => {
   return new Promise((resolve, reject) => {
     const sql = 'SELECT * FROM tasks WHERE deadline > ?';
