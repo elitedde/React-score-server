@@ -112,7 +112,7 @@ exports.deleteTask = (id) => {
         if (err) {
           reject(err);
           return;
-        }
+        } 
 
         const tasks = rows.map((t) => ({ id: t.id, description: t.description, important:t.important, private: t.private,
               deadline: t.deadline, completed: t.completed, user: t.user }));
