@@ -1,5 +1,5 @@
 'use strict';
- 
+// http://localhost:3001/api/tasks?filter= nomefiltro
 const express = require('express');
 const dayjs= require('dayjs');
 const morgan = require('morgan'); 
@@ -16,12 +16,22 @@ app.use(express.json());
 
 //retrieve the list of all the available tasks
 app.get('/api/tasks', (req, res) => {
-  dao.getAll()
-  .then(tasks => res.json(tasks))
-  .catch(()=> res.status(500).end());
+  if(req.query.filter){
+    let filter = req.query.filter
+    dao.getFilteredTasks(filter)
+    .then(tasks => res.json(tasks))
+    .catch(()=> res.status(500).end());
+  }
+  else{
+
+    dao.getAll()
+    .then(tasks => res.json(tasks))
+    .catch(()=> res.status(500).end());
+  }
 });
 
 //retrieve a task given id
+//req.params.id estrapolo id dalla mia richiesta http
 app.get('/api/tasks/:id', (req, res) => {
   dao.getTask(req.params.id)
   .then(task => res.json(task))
@@ -30,41 +40,31 @@ app.get('/api/tasks/:id', (req, res) => {
 
 /* update an existing task */
 app.put('/api/tasks/:id', [
-  /*check('description').isAlpha(),*/
-  /*check('date').isDate({format: 'YYYY-MM-DD', strictMode: true}),
-  check('date').isAfter(dayjs()),
-  check('important').isBoolean(),
-  check('private').isBoolean(),
-  check('completed').isBoolean()*/
-], async (req, res) => {
+  check('description').notEmpty(),
+  check('deadline').isISO8601(),
+  check('important').isNumeric(),
+  check('private').isNumeric(),
+  check('completed').isNumeric(),
+  check('user').isNumeric()
+], (req, res) => {
   const errors = validationResult(req);
   if(!errors.isEmpty()) /*se ci sono errori*/
     return res.status(422).json({errors: errors.array()});
-    
-/*qua ho oggetto da aggiornare*/
+  //fare controllo che task non ci sia già
   const taskToUpdate = req.body;
-  /*if(req.params.id === taskToUpdate.id) {*/
-    try {
-      /*qua non ho problemi*/
-      await dao.updateTask(taskToUpdate, req.params.id);
-      res.status(200).end();
-    } catch(err) {
-      /*mando json indietro con stringa di errore*/
-      res.status(503).json({error: `Database error during the update of task ${req.params.id}`});
-    }
- /* }
-  else return res.status(503).json({error: `Wrong id in the request body.`});*/
-  
+  const id = req.params.id;
+  dao.updateTask(taskToUpdate, id).then(() =>  res.status(201).end()).
+      catch(() => res.status(503).json({error: `Database error during the update.`}));
 });
 
 /* add a new task*/
-app.post('/api/tasks/', [/*
+app.post('/api/tasks/', [
     check('description').isAlpha(),
-    check('date').isDate({format: 'YYYY-MM-DD', strictMode: true}),
-    check('date').isAfter(dayjs()),
-    check('important').isBoolean(),
-    check('private').isBoolean(),
-    check('completed').isBoolean()*/
+    check('deadline').isISO8601(),
+    check('important').isNumeric(),
+    check('private').isNumeric(),
+    check('completed').isNumeric(),
+    check('user').isNumeric()
   ], (req, res) => {
     const errors = validationResult(req);
     if(!errors.isEmpty()) /*se ci sono errori*/
@@ -77,12 +77,11 @@ app.post('/api/tasks/', [/*
   
 
 
- // delete an existing exam
+ // delete an existing task
  app.delete('/api/tasks/:id', (req, res) => {
   dao.deleteTask(req.params.id).then(() =>  res.status(204).end()).
-  catch(() => res.status(503).json({error: `Database error during the deletion of task ${task.id}.`}));
+  catch(() => res.status(503).json({error: `Database error during the delete.`}));
 });
-
 
 // Activate the server
 app.listen(port, ()=> {

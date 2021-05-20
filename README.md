@@ -153,23 +153,22 @@ Response body: _None_
 
 ### __Mark an existing task as completed/uncompleted__
 
-URL: `/api/tasks/<id>`
+URL: /api/tasks/<id>
 
 HTTP Method: PUT
 
 Description: mark an existing task as completed/uncompleted given its id
 
-Request body: An object that represents an exam (Content-Type: `application/json`).
-### ___da fare___
-```
-{
-    "description": "laundry",
-    "important": 1,
+Request body: An object that represents a task (Content-Type: application/json).
+
+  {
+    "description": "Eat whitw chocolate",
+    "important": 0,
     "private": 1,
-    "deadline": NULL;
-}
-```
+    "deadline": "2021-05-24 09:00",
+    "completed": 1,
+    "user": 1
+  }
+Response: 200 (success), 503 (generic error). If the request body is not valid, 422 Unprocessable Entity.
 
-Response: `200` (success), `503` (generic error). If the request body is not valid, `422 Unprocessable Entity`.
-
-Response body: _None_
+Response body: None

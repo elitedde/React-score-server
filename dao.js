@@ -32,7 +32,7 @@ exports.getTask = (id) => {
   });
 };
 /* update an existing task */
-exports.updateExam = (task, id) => {
+exports.updateTask = (task, id) => {
     return new Promise((resolve, reject) => {
       const sql = 'UPDATE tasks SET description=?, important=?, private=?, deadline=DATE(?), completed=?, user=? WHERE id = ?';
       db.run(sql, [task.description,task.important,task.private, task.deadline, task.completed, task.user, id], function (err) {
@@ -82,6 +82,7 @@ exports.createTask = (task) => {
 };
 
 
+
 // delete an existing exam
 exports.deleteTask = (id) => {
     return new Promise((resolve, reject) => {
@@ -91,22 +92,33 @@ exports.deleteTask = (id) => {
           reject(err);
           return;
         } else
-          resolve(null);
+          resolve();
       });
     });
   };
-/*this.getAfterDeadline = (deadline) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM tasks WHERE deadline > ?';
-    db.all(sql, [deadline.format()], (err, rows) => {
-      if(err)
-        reject(err);
-      else {
-        const tasks = rows.map(record => new Task(record.id, record.description, record.important == 1, record.private == 1, record.deadline));
+  exports.getFilteredTasks = (filter) => {
+    return new Promise((resolve, reject) => {
+      let sql;
+      if(filter == "next7days")
+        sql = 'SELECT * FROM tasks WHERE deadline >= "' + dayjs().format("YYYY-MM-DD HH:mm") + '" AND deadline <= "' + dayjs().add(7,'day').format("YYYY-MM-DD HH:mm") + '"';
+      else if(filter == "all")
+        sql = 'SELECT * FROM tasks';
+      else if(filter == "today")
+        sql = 'SELECT * FROM tasks WHERE DATE(deadline) = ' + dayjs().format("YYYY-MM-DD");
+      else
+      //tutti gli altri filtri
+        sql = 'SELECT * FROM tasks WHERE '+ filter + '=1';     
+        db.all(sql, [], (err, rows) => {  
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        const tasks = rows.map((t) => ({ id: t.id, description: t.description, important:t.important, private: t.private,
+              deadline: t.deadline, completed: t.completed, user: t.user }));
         resolve(tasks);
-      }
+      });
     });
-  });
-};*/
+  };
 
 
